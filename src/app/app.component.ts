@@ -17,13 +17,14 @@ export class AppComponent implements OnInit,OnDestroy {
 
   @ViewChild(IonModal) modal!: IonModal;
   noteSub!: Subscription;
-  model:any = {};
+  model: any = {};
   notes: Note[] = [];
   isOpen: boolean = false;
-  constructor(private note:NoteService) {}
+  
+  constructor(private note: NoteService) {}
 
   ngOnInit(): void {
-    this.note.getnotes();
+    this.note.getNotes();
     this.noteSub = this.note.notes.subscribe({
       next: (notes) => {
         this.notes = notes;
@@ -34,30 +35,29 @@ export class AppComponent implements OnInit,OnDestroy {
     });
   }
 
-
-  onWillDismiss(event:Event){
+  onWillDismiss(event: Event) {
     const ev = event as CustomEvent<OverlayEventDetail<string>>;
-    this.model={};
+    this.model = {};
     this.isOpen = false;
-
   }
 
   cancel() {
     this.modal.dismiss(null, 'cancel');
   }
 
-  async save(form : NgForm) {
-    try{
-    if(!form.valid){
-      return;
+  async save(form: NgForm) {
+    try {
+      if(!form.valid) {
+        // alert
+        return;
+      }
+      console.log(form.value);
+      if(this.model?.id) await this.note.updateNote(this.model.id, form.value);
+      else await this.note.addNote(form.value);
+      this.modal.dismiss();
+    } catch(e) {
+      console.log(e);
     }
-    console.log(form.value);
-  if(this.model?.id)await this.note.updateNote(this.model.id,form.value);
-  else await this.note.addNote(form.value)
-  this.modal.dismiss();
-  }catch(e){
-console.log(e);
-  }
   }
 
   async deleteNote(note: Note) {
@@ -79,7 +79,9 @@ console.log(e);
       console.log(e);
     }
   }
+
   ngOnDestroy(): void {
-    if(this.noteSub) this.noteSub.unsubscribe();
-}
+      if(this.noteSub) this.noteSub.unsubscribe();
+  }
+
 }
